@@ -72,4 +72,24 @@ public class CategoryServiceImpl implements CategoryService {
 	public List<CategoryModel> search(String keyword) {
 		return categoryDao.search(keyword);
 	}
+
+	@Override
+	public List<CategoryModel> getByOwner(int ownerId) {
+		return categoryDao.getByOwnerId(ownerId);
+	}
+
+	@Override
+	public CategoryModel getOwnedCategory(int id, int ownerId) {
+		return categoryDao.getOwnedCategory(id, ownerId);
+	}
+
+	@Override
+	public boolean deleteByOwner(int id, int ownerId) {
+		return categoryDao.deleteByOwner(id, ownerId);
+	}
+
+	@Override
+	public boolean updateOwnedCategory(CategoryModel category, int ownerId) {
+		return categoryDao.updateOwnedCategory(category, ownerId);
+	}
 }

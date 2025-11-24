@@ -68,8 +68,9 @@ h3 {
 </head>
 <body>
 	<div class="form-container">
+		<c:set var="formBase" value="${empty categoryBasePath ? '/admin/category' : categoryBasePath}" />
 		<h3>Thêm Danh Mục Mới</h3>
-		<form action="${pageContext.request.contextPath}/admin/category/add"
+		<form action="${pageContext.request.contextPath}${formBase}/add"
 			method="post" enctype="multipart/form-data">
 			<div class="mb-3">
 				<label class="form-label fw-bold">Tên danh mục</label> <input
@@ -81,7 +82,7 @@ h3 {
 					type="file" class="form-control" name="icon" required>
 			</div>
 			<button type="submit" class="btn btn-primary">Lưu Danh Mục</button>
-			<a href="${pageContext.request.contextPath}/admin/category/list"
+			<a href="${pageContext.request.contextPath}${formBase}/list"
 				class="btn btn-secondary d-block text-center text-decoration-none">Hủy
 				Bỏ</a>
 		</form>

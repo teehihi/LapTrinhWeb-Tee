@@ -36,6 +36,11 @@ public class ProductController extends HttpServlet {
 		}
 
 		req.setAttribute("productList", productList);
+		req.setAttribute("productBasePath", "/admin/product");
+		req.setAttribute("productDashboardPath", "/admin/home");
+		req.setAttribute("categoryListPath", "/admin/category/list");
+		req.setAttribute("canManageProducts", true);
+
 		RequestDispatcher dispatcher = req.getRequestDispatcher("/views/admin/product/list-product.jsp");
 		dispatcher.forward(req, resp);
 	}

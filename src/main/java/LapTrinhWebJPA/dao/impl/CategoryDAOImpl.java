@@ -7,6 +7,7 @@ import LapTrinhWebJPA.config.JPAConfig;
 import LapTrinhWebJPA.dao.CategoryDAO;
 import LapTrinhWebJPA.entity.Category;
 import LapTrinhWebJPA.model.CategoryModel;
+import LapTrinhWebJPA.entity.User;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.NoResultException;
@@ -23,6 +24,10 @@ public class CategoryDAOImpl implements CategoryDAO {
 			Category entity = new Category();
 			entity.setCategoryName(model.getCateName());
 			entity.setIcon(model.getImage());
+			if (model.getOwnerId() != null) {
+				User owner = enma.find(User.class, model.getOwnerId());
+				entity.setOwner(owner);
+			}
 			enma.persist(entity);
 			trans.commit();
 		} catch (Exception e) {
@@ -79,7 +84,7 @@ public class CategoryDAOImpl implements CategoryDAO {
 		try {
 			Category entity = enma.find(Category.class, id);
 			if (entity != null) {
-				return new CategoryModel(entity.getCategoryId(), entity.getCategoryName(), entity.getIcon());
+				return mapToModel(entity);
 			}
 		} finally {
 			enma.close();
@@ -95,7 +100,7 @@ public class CategoryDAOImpl implements CategoryDAO {
 			TypedQuery<Category> query = enma.createQuery("SELECT c FROM Category c", Category.class);
 			List<Category> result = query.getResultList();
 			for (Category entity : result) {
-				list.add(new CategoryModel(entity.getCategoryId(), entity.getCategoryName(), entity.getIcon()));
+				list.add(mapToModel(entity));
 			}
 		} finally {
 			enma.close();
@@ -111,7 +116,7 @@ public class CategoryDAOImpl implements CategoryDAO {
 					Category.class);
 			query.setParameter("name", cateName);
 			Category entity = query.getSingleResult();
-			return new CategoryModel(entity.getCategoryId(), entity.getCategoryName(), entity.getIcon());
+			return mapToModel(entity);
 		} catch (NoResultException e) {
 			return null;
 		} finally {
@@ -129,11 +134,104 @@ public class CategoryDAOImpl implements CategoryDAO {
 			query.setParameter("key", "%" + keyword + "%");
 			List<Category> result = query.getResultList();
 			for (Category entity : result) {
-				list.add(new CategoryModel(entity.getCategoryId(), entity.getCategoryName(), entity.getIcon()));
+				list.add(mapToModel(entity));
 			}
 		} finally {
 			enma.close();
 		}
 		return list;
+	}
+
+	@Override
+	public List<CategoryModel> getByOwnerId(int ownerId) {
+		EntityManager enma = JPAConfig.getEntityManager();
+		List<CategoryModel> list = new ArrayList<>();
+		try {
+			TypedQuery<Category> query = enma.createQuery("SELECT c FROM Category c WHERE c.owner.userId = :ownerId",
+					Category.class);
+			query.setParameter("ownerId", ownerId);
+			List<Category> result = query.getResultList();
+			for (Category entity : result) {
+				list.add(mapToModel(entity));
+			}
+		} finally {
+			enma.close();
+		}
+		return list;
+	}
+
+	@Override
+	public CategoryModel getOwnedCategory(int id, int ownerId) {
+		EntityManager enma = JPAConfig.getEntityManager();
+		try {
+			TypedQuery<Category> query = enma.createQuery(
+					"SELECT c FROM Category c WHERE c.categoryId = :id AND c.owner.userId = :ownerId", Category.class);
+			query.setParameter("id", id);
+			query.setParameter("ownerId", ownerId);
+			Category entity = query.getSingleResult();
+			return mapToModel(entity);
+		} catch (NoResultException e) {
+			return null;
+		} finally {
+			enma.close();
+		}
+	}
+
+	@Override
+	public boolean deleteByOwner(int id, int ownerId) {
+		EntityManager enma = JPAConfig.getEntityManager();
+		EntityTransaction trans = enma.getTransaction();
+		try {
+			trans.begin();
+			TypedQuery<Category> query = enma.createQuery(
+					"SELECT c FROM Category c WHERE c.categoryId = :id AND c.owner.userId = :ownerId", Category.class);
+			query.setParameter("id", id);
+			query.setParameter("ownerId", ownerId);
+			Category entity = query.getSingleResult();
+			enma.remove(entity);
+			trans.commit();
+			return true;
+		} catch (NoResultException e) {
+			trans.rollback();
+			return false;
+		} catch (Exception e) {
+			trans.rollback();
+			throw e;
+		} finally {
+			enma.close();
+		}
+	}
+
+	@Override
+	public boolean updateOwnedCategory(CategoryModel model, int ownerId) {
+		EntityManager enma = JPAConfig.getEntityManager();
+		EntityTransaction trans = enma.getTransaction();
+		try {
+			trans.begin();
+			TypedQuery<Category> query = enma.createQuery(
+					"SELECT c FROM Category c WHERE c.categoryId = :id AND c.owner.userId = :ownerId", Category.class);
+			query.setParameter("id", model.getId());
+			query.setParameter("ownerId", ownerId);
+			Category entity = query.getSingleResult();
+			entity.setCategoryName(model.getCateName());
+			entity.setIcon(model.getImage());
+			enma.merge(entity);
+			trans.commit();
+			return true;
+		} catch (NoResultException e) {
+			trans.rollback();
+			return false;
+		} catch (Exception e) {
+			trans.rollback();
+			throw e;
+		} finally {
+			enma.close();
+		}
+	}
+
+	private CategoryModel mapToModel(Category entity) {
+		Integer ownerId = entity.getOwner() != null ? entity.getOwner().getUserId() : null;
+		String ownerName = entity.getOwner() != null ? entity.getOwner().getFullname() : null;
+		return new CategoryModel(entity.getCategoryId(), entity.getCategoryName(), entity.getIcon(), ownerId, ownerName);
 	}
 }

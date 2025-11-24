@@ -220,13 +220,13 @@ body {
 
 	<div class="container">
 
-		<c:if test="${sessionScope.account != null && sessionScope.account.role == 1}">
+		<c:if test="${sessionScope.account != null && sessionScope.account.role == 3}">
 			<div class="admin-panel">
 				<div>
 					<h5 class="text-danger fw-bold mb-1"><i class="fa-solid fa-user-gear me-2"></i>Trang Quản Trị Viên</h5>
 					<small class="text-muted">Quản lý sản phẩm, đơn hàng và danh mục tại đây.</small>
 				</div>
-				<a href="${pageContext.request.contextPath}/views/admin/index.jsp" class="btn btn-danger">
+				<a href="${pageContext.request.contextPath}/admin/home" class="btn btn-danger">
 					<i class="fa-solid fa-gauge-high me-2"></i> Vào Dashboard
 				</a>
 			</div>

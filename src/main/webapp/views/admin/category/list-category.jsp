@@ -85,10 +85,10 @@ h2 {
 				<i class="fa-solid fa-layer-group me-2"></i>Danh Mục Sản Phẩm
 			</h2>
 			<div>
-				<a href="${pageContext.request.contextPath}/views/admin/index.jsp"
+				<a href="${pageContext.request.contextPath}/waiting"
 					class="btn btn-outline-secondary me-2"> <i
 					class="fa-solid fa-arrow-left"></i> Quay lại
-				</a> <a href="${pageContext.request.contextPath}/admin/category/add"
+				</a> <a href="${pageContext.request.contextPath}${categoryBasePath}/add"
 					class="btn btn-add"> <i class="fa-solid fa-plus me-1"></i> Thêm
 					Mới
 				</a>
@@ -102,7 +102,10 @@ h2 {
 						<th>ID</th>
 						<th>Hình Ảnh</th>
 						<th>Tên Danh Mục</th>
-						<th class="text-center" style="width: 150px;">Thao Tác</th>
+						<c:if test="${showOwnerColumn}">
+							<th>Người Tạo</th>
+						</c:if>
+						<th class="text-center" style="width: 220px;">Thao Tác</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -118,25 +121,28 @@ h2 {
                 </c:if>
             </td>
             <td class="fw-bold text-dark">${cate.cateName}</td>
+			<c:if test="${showOwnerColumn}">
+				<td>${empty cate.ownerName ? '---' : cate.ownerName}</td>
+			</c:if>
 
             <td class="text-end">
  
                 <%-- 1. NÚT SỬA --%> 
-                <a href="${pageContext.request.contextPath}/admin/category/edit?id=${cate.id}"
+                <a href="${pageContext.request.contextPath}${categoryBasePath}/edit?id=${cate.id}"
                    class="btn btn-sm btn-warning text-white me-2"
                    title="Sửa danh mục"> 
                     <i class="fa-solid fa-pen-to-square"></i>
                 </a> 
                 
                 <%-- 2. NÚT XÓA (Nút cuối cùng không cần me-2) --%> 
-                <a href="${pageContext.request.contextPath}/admin/category/delete?id=${cate.id}"
+                <a href="${pageContext.request.contextPath}${categoryBasePath}/delete?id=${cate.id}"
                    class="btn btn-sm btn-danger me-2"
                    onclick="return confirm('Bạn có chắc chắn muốn xóa danh mục này?');"
                    title="Xóa danh mục"> 
                     <i class="fa-solid fa-trash"></i>
                 </a> 
                 <%-- 3. NÚT XEM SP --%>
-                <a href="${pageContext.request.contextPath}/admin/product/list?cid=${cate.id}"
+                <a href="${pageContext.request.contextPath}${productListPath}?cid=${cate.id}"
                    class="btn btn-sm btn-info text-white me-2"
                    title="Xem các sản phẩm"> 
                     <i class="fa-solid fa-eye"></i>

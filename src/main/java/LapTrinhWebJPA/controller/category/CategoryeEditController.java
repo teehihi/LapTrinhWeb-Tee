@@ -3,7 +3,9 @@ package LapTrinhWebJPA.controller.category;
 import java.io.File;
 import java.io.IOException;
 
+import LapTrinhWebJPA.config.Constant;
 import LapTrinhWebJPA.model.CategoryModel;
+import LapTrinhWebJPA.model.UserModel;
 import LapTrinhWebJPA.service.CategoryService;
 import LapTrinhWebJPA.service.impl.CategoryServiceImpl;
 import jakarta.servlet.RequestDispatcher;
@@ -13,9 +15,10 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
 
-@WebServlet(urlPatterns = { "/admin/category/edit" })
+@WebServlet(urlPatterns = { "/admin/category/edit", "/manager/category/edit", "/user/category/edit" })
 @MultipartConfig(fileSizeThreshold = 1024 * 1024, maxFileSize = 1024 * 1024 * 5, maxRequestSize = 1024 * 1024 * 5 * 5)
 public class CategoryeEditController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
@@ -45,9 +48,30 @@ public class CategoryeEditController extends HttpServlet {
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		req.setCharacterEncoding("UTF-8");
 		String id = req.getParameter("id");
-		// Lấy Model
-		CategoryModel category = cateService.get(Integer.parseInt(id));
+		if (id == null) {
+			resp.sendRedirect(req.getContextPath() + resolveBasePath(req) + "/list");
+			return;
+		}
+
+		boolean restrictedArea = isOwnershipArea(req);
+		CategoryModel category;
+		if (restrictedArea) {
+			UserModel currentUser = getCurrentUser(req, resp);
+			if (currentUser == null) {
+				return;
+			}
+			category = cateService.getOwnedCategory(Integer.parseInt(id), currentUser.getId());
+		} else {
+			category = cateService.get(Integer.parseInt(id));
+		}
+
+		if (category == null) {
+			resp.sendRedirect(req.getContextPath() + resolveBasePath(req) + "/list");
+			return;
+		}
+
 		req.setAttribute("category", category);
+		req.setAttribute("categoryBasePath", resolveBasePath(req));
 		RequestDispatcher dispatcher = req.getRequestDispatcher("/views/admin/category/edit-category.jsp");
 		dispatcher.forward(req, resp);
 	}
@@ -69,7 +93,24 @@ public class CategoryeEditController extends HttpServlet {
 			if (categoryName != null)
 				category.setCateName(categoryName);
 
-			CategoryModel existingCategory = cateService.get(category.getId());
+			boolean managerArea = isOwnershipArea(req);
+			UserModel currentUser = null;
+			CategoryModel existingCategory;
+			if (managerArea) {
+				currentUser = getCurrentUser(req, resp);
+				if (currentUser == null) {
+					return;
+				}
+				existingCategory = cateService.getOwnedCategory(category.getId(), currentUser.getId());
+			} else {
+				existingCategory = cateService.get(category.getId());
+			}
+
+			if (existingCategory == null) {
+				resp.sendRedirect(req.getContextPath() + resolveBasePath(req) + "/list");
+				return;
+			}
+
 			category.setImage(existingCategory.getImage());
 
 			Part iconPart = req.getPart("icon");
@@ -98,11 +139,47 @@ public class CategoryeEditController extends HttpServlet {
 				category.setImage("uploads/category/" + fileName);
 			}
 
-			cateService.edit(category);
-			resp.sendRedirect(req.getContextPath() + "/admin/category/list");
+			boolean updated;
+			if (managerArea) {
+				category.setOwnerId(currentUser.getId());
+				updated = cateService.updateOwnedCategory(category, currentUser.getId());
+			} else {
+				updated = true;
+				cateService.edit(category);
+			}
+
+			if (!updated) {
+				resp.sendRedirect(req.getContextPath() + resolveBasePath(req) + "/list?error=notfound");
+				return;
+			}
+
+			resp.sendRedirect(req.getContextPath() + resolveBasePath(req) + "/list");
 
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	private boolean isOwnershipArea(HttpServletRequest req) {
+		return req.getServletPath().startsWith("/manager") || req.getServletPath().startsWith("/user");
+	}
+
+	private String resolveBasePath(HttpServletRequest req) {
+		if (req.getServletPath().startsWith("/manager")) {
+			return "/manager/category";
+		}
+		if (req.getServletPath().startsWith("/user")) {
+			return "/user/category";
+		}
+		return "/admin/category";
+	}
+
+	private UserModel getCurrentUser(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		HttpSession session = req.getSession(false);
+		UserModel currentUser = session != null ? (UserModel) session.getAttribute(Constant.SESSION_ACCOUNT) : null;
+		if (currentUser == null) {
+			resp.sendRedirect(req.getContextPath() + "/login");
+		}
+		return currentUser;
 	}
 }

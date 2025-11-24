@@ -2,6 +2,7 @@ package LapTrinhWebJPA.controller.auth;
 
 import java.io.IOException;
 
+import LapTrinhWebJPA.config.Constant;
 import LapTrinhWebJPA.model.UserModel;
 import LapTrinhWebJPA.service.UserService;
 import LapTrinhWebJPA.service.impl.UserServiceImpl;
@@ -20,19 +21,23 @@ public class LoginController extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		HttpSession session = req.getSession(false);
-		if (session != null && session.getAttribute("account") != null) {
-			resp.sendRedirect(req.getContextPath() + "/waiting");
+		if (session != null && session.getAttribute(Constant.SESSION_ACCOUNT) != null) {
+			UserModel existing = (UserModel) session.getAttribute(Constant.SESSION_ACCOUNT);
+			resp.sendRedirect(req.getContextPath() + resolveHomePath(existing.getRole()));
 			return;
 		}
 
 		Cookie[] cookies = req.getCookies();
 		if (cookies != null) {
 			for (Cookie cookie : cookies) {
-				if (cookie.getName().equals("username")) {
-					session = req.getSession(true);
-					session.setAttribute("account", cookie.getValue());
-					resp.sendRedirect(req.getContextPath() + "/waiting");
-					return;
+				if (cookie.getName().equals(Constant.COOKIE_REMEMBER)) {
+					UserModel rememberedUser = new UserServiceImpl().get(cookie.getValue());
+					if (rememberedUser != null) {
+						session = req.getSession(true);
+						session.setAttribute(Constant.SESSION_ACCOUNT, rememberedUser);
+						resp.sendRedirect(req.getContextPath() + resolveHomePath(rememberedUser.getRole()));
+						return;
+					}
 				}
 			}
 		}
@@ -63,12 +68,12 @@ public class LoginController extends HttpServlet {
 
 		if (user != null) {
 			HttpSession session = req.getSession(true);
-			session.setAttribute("account", user);
+			session.setAttribute(Constant.SESSION_ACCOUNT, user);
 
 			if (isRememberMe) {
-				saveRemeberMe(resp, username);
+				saveRememberMe(resp, username);
 			}
-			resp.sendRedirect(req.getContextPath() + "/waiting");
+			resp.sendRedirect(req.getContextPath() + resolveHomePath(user.getRole()));
 		} else {
 			alertMsg = "Tài khoản hoặc mật khẩu không đúng";
 			req.setAttribute("alert", alertMsg);
@@ -76,9 +81,17 @@ public class LoginController extends HttpServlet {
 		}
 	}
 
-	private void saveRemeberMe(HttpServletResponse response, String username) {
-		Cookie cookie = new Cookie("username", username);
+	private void saveRememberMe(HttpServletResponse response, String username) {
+		Cookie cookie = new Cookie(Constant.COOKIE_REMEMBER, username);
 		cookie.setMaxAge(30 * 60);
 		response.addCookie(cookie);
+	}
+
+	private String resolveHomePath(int role) {
+		return switch (role) {
+		case Constant.ROLE_MANAGER -> "/manager/home";
+		case Constant.ROLE_ADMIN -> "/admin/home";
+		default -> "/user/home";
+		};
 	}
 }

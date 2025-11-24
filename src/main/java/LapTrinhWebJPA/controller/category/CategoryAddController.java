@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.IOException;
 
 // Import mới
+import LapTrinhWebJPA.config.Constant;
 import LapTrinhWebJPA.model.CategoryModel;
+import LapTrinhWebJPA.model.UserModel;
 import LapTrinhWebJPA.service.CategoryService;
 import LapTrinhWebJPA.service.impl.CategoryServiceImpl;
 import jakarta.servlet.RequestDispatcher;
@@ -14,9 +16,10 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
 
-@WebServlet(urlPatterns = { "/admin/category/add" })
+@WebServlet(urlPatterns = { "/admin/category/add", "/manager/category/add", "/user/category/add" })
 @MultipartConfig(fileSizeThreshold = 1024 * 1024, maxFileSize = 1024 * 1024 * 5, maxRequestSize = 1024 * 1024 * 5 * 5)
 public class CategoryAddController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
@@ -45,6 +48,7 @@ public class CategoryAddController extends HttpServlet {
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		req.setAttribute("categoryBasePath", resolveBasePath(req));
 		RequestDispatcher dispatcher = req.getRequestDispatcher("/views/admin/category/add-category.jsp");
 		dispatcher.forward(req, resp);
 	}
@@ -55,8 +59,21 @@ public class CategoryAddController extends HttpServlet {
 		resp.setContentType("text/html");
 		resp.setCharacterEncoding("UTF-8");
 
-		// Dùng Model mới
+		boolean restrictedArea = !req.getServletPath().startsWith("/admin");
+		UserModel currentUser = null;
+		if (restrictedArea) {
+			HttpSession session = req.getSession(false);
+			currentUser = session != null ? (UserModel) session.getAttribute(Constant.SESSION_ACCOUNT) : null;
+			if (currentUser == null) {
+				resp.sendRedirect(req.getContextPath() + "/login");
+				return;
+			}
+		}
+
 		CategoryModel category = new CategoryModel();
+		if (restrictedArea) {
+			category.setOwnerId(currentUser.getId());
+		}
 
 		try {
 			String categoryName = extractFormValue(req, "name");
@@ -88,10 +105,21 @@ public class CategoryAddController extends HttpServlet {
 			}
 
 			cateService.insert(category);
-			resp.sendRedirect(req.getContextPath() + "/admin/category/list");
+			resp.sendRedirect(req.getContextPath() + resolveBasePath(req) + "/list");
 
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	private String resolveBasePath(HttpServletRequest req) {
+		String path = req.getServletPath();
+		if (path.startsWith("/manager")) {
+			return "/manager/category";
+		}
+		if (path.startsWith("/user")) {
+			return "/user/category";
+		}
+		return "/admin/category";
 	}
 }

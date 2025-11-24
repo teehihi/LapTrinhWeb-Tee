@@ -22,6 +22,11 @@ public class ProductServiceImpl implements ProductService {
 	}
 
 	@Override
+	public List<ProductModel> getByOwnerId(int ownerId) {
+		return productDAO.getByOwnerId(ownerId);
+	}
+
+	@Override
 	public void insert(ProductModel product) {
 		productDAO.insert(product);
 	}

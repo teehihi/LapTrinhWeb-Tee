@@ -51,6 +51,25 @@ public class ProductDAOImpl implements ProductDAO {
 	}
 
 	@Override
+	public List<ProductModel> getByOwnerId(int ownerId) {
+		EntityManager enma = JPAConfig.getEntityManager();
+		List<ProductModel> listModel = new ArrayList<>();
+		try {
+			TypedQuery<Product> query = enma.createQuery(
+					"SELECT p FROM Product p WHERE p.category.owner.userId = :ownerId", Product.class);
+			query.setParameter("ownerId", ownerId);
+			List<Product> listEntity = query.getResultList();
+			for (Product entity : listEntity) {
+				listModel.add(new ProductModel(entity.getProductId(), entity.getProductName(), entity.getPrice(),
+						entity.getImage(), entity.getCategory() != null ? entity.getCategory().getCategoryId() : 0));
+			}
+		} finally {
+			enma.close();
+		}
+		return listModel;
+	}
+
+	@Override
 	public void insert(ProductModel model) {
 		EntityManager enma = JPAConfig.getEntityManager();
 		EntityTransaction trans = enma.getTransaction();

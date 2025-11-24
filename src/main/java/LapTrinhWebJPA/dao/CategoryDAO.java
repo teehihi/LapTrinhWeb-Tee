@@ -18,4 +18,12 @@ public interface CategoryDAO {
 	List<CategoryModel> getAll();
 
 	List<CategoryModel> search(String keyword);
+
+	List<CategoryModel> getByOwnerId(int ownerId);
+
+	CategoryModel getOwnedCategory(int id, int ownerId);
+
+	boolean deleteByOwner(int id, int ownerId);
+
+	boolean updateOwnedCategory(CategoryModel category, int ownerId);
 }

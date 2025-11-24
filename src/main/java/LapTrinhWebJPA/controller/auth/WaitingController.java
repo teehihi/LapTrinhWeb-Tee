@@ -2,6 +2,7 @@ package LapTrinhWebJPA.controller.auth;
 
 import java.io.IOException;
 
+import LapTrinhWebJPA.config.Constant;
 import LapTrinhWebJPA.model.UserModel;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -16,15 +17,14 @@ public class WaitingController extends HttpServlet {
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		HttpSession session = req.getSession();
 
-		if (session != null && session.getAttribute("account") != null) {
-			UserModel u = (UserModel) session.getAttribute("account");
-			req.setAttribute("username", u.getUserName());
-			resp.sendRedirect(req.getContextPath() + "/views/home.jsp");
-//			if (u.getRole() == 1) {
-//				resp.sendRedirect(req.getContextPath() + "/views/admin/index.jsp");
-//			} else {
-//				resp.sendRedirect(req.getContextPath() + "/views/home.jsp");
-//			}
+		if (session != null && session.getAttribute(Constant.SESSION_ACCOUNT) != null) {
+			UserModel u = (UserModel) session.getAttribute(Constant.SESSION_ACCOUNT);
+			String target = switch (u.getRole()) {
+			case Constant.ROLE_MANAGER -> "/manager/home";
+			case Constant.ROLE_ADMIN -> "/admin/home";
+			default -> "/user/home";
+			};
+			resp.sendRedirect(req.getContextPath() + target);
 		} else {
 			resp.sendRedirect(req.getContextPath() + "/login");
 		}

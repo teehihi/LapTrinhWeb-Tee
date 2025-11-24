@@ -53,9 +53,10 @@
 </head>
 <body>
     <div class="form-container">
+    	<c:set var="formBase" value="${empty categoryBasePath ? '/admin/category' : categoryBasePath}" />
         <h3>Sửa Danh Mục</h3>
         
-        <form action="${pageContext.request.contextPath}/admin/category/edit" method="post" enctype="multipart/form-data">
+        <form action="${pageContext.request.contextPath}${formBase}/edit" method="post" enctype="multipart/form-data">
             <input type="hidden" name="id" value="${category.id}">
 
             <div class="mb-3">
@@ -77,7 +78,7 @@
 
             <div>
                 <button type="submit" class="btn btn-primary">Cập nhật</button>
-                <a href="${pageContext.request.contextPath}/admin/category/list" class="btn btn-secondary">Hủy</a>
+                <a href="${pageContext.request.contextPath}${formBase}/list" class="btn btn-secondary">Hủy</a>
             </div>
         </form>
     </div>

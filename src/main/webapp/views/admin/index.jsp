@@ -1,4 +1,5 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="jakarta.tags.core"%>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -91,15 +92,51 @@ h2 {
 .btn-secondary:hover {
 	background-color: #444;
 }
+
+.admin-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 16px;
+	padding: 15px 20px;
+	background: #fff3e0;
+	border-radius: 10px;
+	margin-bottom: 30px;
+	border: 1px solid #ffe0b2;
+}
+
+.admin-header .info span {
+	display: block;
+	font-weight: 600;
+	color: var(--primary-color);
+}
+
+.admin-header .info small {
+	color: #666;
+}
 </style>
 </head>
 
 <body>
 	<div class="admin-container">
 
-		<h2 class="text-center mb-5">
+		<h2 class="text-center mb-4">
 			<i class="fa-solid fa-user-gear me-2"></i>Hệ Thống Quản Trị
 		</h2>
+
+		<c:if test="${sessionScope.account != null}">
+			<div class="admin-header">
+				<div class="info">
+					<span><i class="fa-solid fa-user-shield me-2"></i>Xin chào,
+						${sessionScope.account.fullName}</span> <small>Tài khoản:
+						${sessionScope.account.userName}</small>
+				</div>
+				<div class="d-flex gap-2">
+					<a href="${pageContext.request.contextPath}/logout"
+						class="btn btn-danger px-4">Đăng xuất</a>
+				</div>
+			</div>
+		</c:if>
 
 		<div class="row g-4">
 			<div class="col-md-6">

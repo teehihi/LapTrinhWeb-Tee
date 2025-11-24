@@ -9,6 +9,8 @@ public interface ProductService {
 
 	List<ProductModel> getByCategoryId(int categoryId);
 
+	List<ProductModel> getByOwnerId(int ownerId);
+
 	void insert(ProductModel product);
 
 	ProductModel getById(int id);

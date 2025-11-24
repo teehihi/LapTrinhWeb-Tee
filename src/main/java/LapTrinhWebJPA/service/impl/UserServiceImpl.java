@@ -2,6 +2,7 @@ package LapTrinhWebJPA.service.impl;
 
 import java.sql.Date;
 
+import LapTrinhWebJPA.config.Constant;
 import LapTrinhWebJPA.dao.UserDAO;
 import LapTrinhWebJPA.dao.impl.UserDaoImpl;
 import LapTrinhWebJPA.model.UserModel;
@@ -53,8 +54,8 @@ public class UserServiceImpl implements UserService {
 			newUser.setPhone(phone);
 		}
 
-		// 3. Set mặc định Role = 0 (User) và Ngày tạo = Hiện tại
-		newUser.setRole(0);
+		// 3. Set mặc định Role = 1 (User) và Ngày tạo = Hiện tại
+		newUser.setRole(Constant.ROLE_USER);
 		newUser.setCreateDate(new Date(System.currentTimeMillis()));
 
 		userDao.insert(newUser);

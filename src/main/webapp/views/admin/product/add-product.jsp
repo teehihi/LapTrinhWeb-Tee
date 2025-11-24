@@ -68,7 +68,8 @@
             <div class="alert alert-danger text-center">${errorMessage}</div>
         </c:if>
 
-        <form action="${pageContext.request.contextPath}/admin/product/add" method="post" enctype="multipart/form-data">
+        <c:set var="productBase" value="${empty productBasePath ? '/admin/product' : productBasePath}" />
+        <form action="${pageContext.request.contextPath}${productBase}/add" method="post" enctype="multipart/form-data">
             
             <div class="mb-3">
                 <label class="form-label">Tên sản phẩm</label>
@@ -100,7 +101,7 @@
             </div>
 
             <div class="d-flex justify-content-end gap-2">
-                <a href="${pageContext.request.contextPath}/admin/product/list" class="btn btn-secondary">Hủy</a>
+                <a href="${pageContext.request.contextPath}${productBase}/list" class="btn btn-secondary">Hủy</a>
                 <button type="submit" class="btn btn-submit">Lưu Sản Phẩm</button>
             </div>
         </form>

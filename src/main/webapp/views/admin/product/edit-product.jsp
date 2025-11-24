@@ -70,7 +70,8 @@ h3 {
 	<div class="form-container">
 		<h3>Cập Nhật Sản Phẩm</h3>
 
-		<form action="${pageContext.request.contextPath}/admin/product/edit"
+		<c:set var="productBase" value="${empty productBasePath ? '/admin/product' : productBasePath}" />
+		<form action="${pageContext.request.contextPath}${productBase}/edit"
 			method="post" enctype="multipart/form-data">
 			<input type="hidden" name="id" value="${product.id}"> <input
 				type="hidden" name="oldImage" value="${product.image}">
@@ -107,7 +108,7 @@ h3 {
 			</div>
 
 			<div class="d-flex justify-content-end gap-2">
-				<a href="${pageContext.request.contextPath}/admin/product/list"
+				<a href="${pageContext.request.contextPath}${productBase}/list"
 					class="btn btn-secondary">Hủy</a>
 				<button type="submit" class="btn btn-submit">Lưu Thay Đổi</button>
 			</div>

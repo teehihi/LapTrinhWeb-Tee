@@ -89,6 +89,10 @@ h2 {
 </style>
 </head>
 <body>
+	<c:set var="productBase" value="${empty productBasePath ? '/admin/product' : productBasePath}" />
+	<c:set var="dashboardPath" value="${empty productDashboardPath ? '/admin/home' : productDashboardPath}" />
+	<c:set var="categoryListHref" value="${empty categoryListPath ? '/admin/category/list' : categoryListPath}" />
+	<c:set var="manageProducts" value="${canManageProducts == null ? true : canManageProducts}" />
 	<div class="table-container">
 		<div class="d-flex justify-content-between align-items-center mb-4">
 			<h2>
@@ -97,19 +101,21 @@ h2 {
 			<div>
 				<c:choose>
 					<c:when test="${not empty param.cid}">
-						<a href="${pageContext.request.contextPath}/admin/category/list"
+						<a href="${pageContext.request.contextPath}${categoryListHref}"
 							class="btn btn-outline-secondary me-2"><i
 							class="fa-solid fa-arrow-left"></i> Về Danh Mục</a>
 					</c:when>
 					<c:otherwise>
-						<a href="${pageContext.request.contextPath}/views/admin/index.jsp"
+						<a href="${pageContext.request.contextPath}${dashboardPath}"
 							class="btn btn-outline-secondary me-2"><i
 							class="fa-solid fa-arrow-left"></i> Về Dashboard</a>
 					</c:otherwise>
 				</c:choose>
-				<a href="${pageContext.request.contextPath}/admin/product/add"
-					class="btn btn-add"><i class="fa-solid fa-plus"></i> Thêm Sản
-					Phẩm</a>
+				<c:if test="${manageProducts}">
+					<a href="${pageContext.request.contextPath}${productBase}/add"
+						class="btn btn-add"><i class="fa-solid fa-plus"></i> Thêm Sản
+						Phẩm</a>
+				</c:if>
 			</div>
 		</div>
 
@@ -137,14 +143,20 @@ h2 {
 									type="currency" currencySymbol="đ" /></td>
 							<td><span class="badge bg-light text-dark border">ID:
 									${p.categoryId}</span></td>
-							<td class="text-center"><a
-								href="${pageContext.request.contextPath}/admin/product/edit?id=${p.id}&cid=${param.cid}"
-								class="action-btn edit-btn" title="Sửa"><i
-									class="fa-solid fa-pen-to-square"></i></a> <a
-								href="${pageContext.request.contextPath}/admin/product/delete?id=${p.id}"
-								class="action-btn delete-btn" title="Xóa"
-								onclick="return confirm('Xóa sản phẩm này?');"><i
-									class="fa-solid fa-trash-can"></i></a></td>
+							<td class="text-center">
+								<c:choose>
+								<c:when test="${manageProducts}">
+										<a href="${pageContext.request.contextPath}${productBase}/edit?id=${p.id}&cid=${param.cid}"
+											class="action-btn edit-btn" title="Sửa"><i class="fa-solid fa-pen-to-square"></i></a>
+										<a href="${pageContext.request.contextPath}${productBase}/delete?id=${p.id}"
+											class="action-btn delete-btn" title="Xóa"
+											onclick="return confirm('Xóa sản phẩm này?');"><i class="fa-solid fa-trash-can"></i></a>
+									</c:when>
+									<c:otherwise>
+										<span class="text-muted">Chỉ xem</span>
+									</c:otherwise>
+								</c:choose>
+							</td>
 						</tr>
 					</c:forEach>
 				</tbody>
